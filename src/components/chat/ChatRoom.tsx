@@ -1,0 +1,124 @@
+'use client';
+import type { User } from 'firebase/auth';
+import React, { useState, useRef, useEffect } from 'react';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, DocumentData } from 'firebase/firestore';
+import { useCollection } from 'react-firebase-hooks/firestore';
+import { db } from '@/lib/firebase';
+import Header from './Header';
+import Message, { type MessageData } from './Message';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface ChatRoomProps {
+    user: User;
+}
+
+const ChatSkeleton = () => (
+    <div className="p-4 space-y-4">
+        <div className="flex items-center gap-3 justify-start">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-12 w-48 rounded-lg" />
+        </div>
+        <div className="flex items-center gap-3 justify-end">
+            <Skeleton className="h-12 w-56 rounded-lg" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+        </div>
+        <div className="flex items-center gap-3 justify-start">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-16 w-64 rounded-lg" />
+        </div>
+    </div>
+);
+
+
+export default function ChatRoom({ user }: ChatRoomProps) {
+    const [inputValue, setInputValue] = useState('');
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    
+    const messagesRef = collection(db, 'messages');
+    const q = query(messagesRef, orderBy('createdAt', 'asc'), limit(50));
+    const [messagesSnapshot, loading] = useCollection(q);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(scrollToBottom, 100);
+        return () => clearTimeout(timeout);
+    }, [messagesSnapshot]);
+    
+    const sendMessage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmedInput = inputValue.trim();
+        if (trimmedInput === '') return;
+
+        const { uid, displayName, photoURL } = user;
+        
+        try {
+            await addDoc(messagesRef, {
+                text: trimmedInput,
+                sender: displayName,
+                uid,
+                photoURL,
+                createdAt: serverTimestamp(),
+            });
+
+            setInputValue('');
+        } catch (error) {
+            console.error("Error sending message: ", error);
+        }
+    };
+
+    const messages = messagesSnapshot?.docs.map(doc => ({ ...doc.data(), id: doc.id } as MessageData)) || [];
+
+    return (
+        <div className="flex flex-col h-screen bg-background">
+            <Header />
+            <ScrollArea className="flex-1">
+                 <div className="p-4">
+                    {loading ? (
+                        <ChatSkeleton />
+                    ) : (
+                        <AnimatePresence>
+                            {messages.map(message => (
+                                <motion.div
+                                    key={message.id}
+                                    layout
+                                    initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                                    transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                                >
+                                    <Message 
+                                        message={message}
+                                        currentUser={user} 
+                                    />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+            </ScrollArea>
+            <footer className="p-4 bg-card border-t">
+                <form onSubmit={sendMessage} className="flex gap-2">
+                    <Input 
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder="Type a message..."
+                        autoComplete="off"
+                        className="text-base"
+                    />
+                    <Button type="submit" size="icon" aria-label="Send Message" disabled={!inputValue.trim()}>
+                        <Send />
+                    </Button>
+                </form>
+            </footer>
+        </div>
+    );
+}
