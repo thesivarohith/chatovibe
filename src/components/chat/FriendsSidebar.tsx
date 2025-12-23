@@ -24,31 +24,29 @@ interface FriendsSidebarProps {
   onSelectChat: (user: ChatPartner) => void;
 }
 
+// Hardcoded user data for direct connection
+const hardcodedUsers: ChatPartner[] = [
+  {
+    uid: 'T25m9gAivYc1Y2a9Zqg2Z0g6xQx1',
+    displayName: 'User One',
+    email: 'user.one@example.com',
+    photoURL: `https://i.pravatar.cc/150?u=T25m9gAivYc1Y2a9Zqg2Z0g6xQx1`,
+  },
+  {
+    uid: 'R7p0o3XyZkE5sNlJk3hG8dF2jVb2',
+    displayName: 'User Two',
+    email: 'user.two@example.com',
+    photoURL: `https://i.pravatar.cc/150?u=R7p0o3XyZkE5sNlJk3hG8dF2jVb2`,
+  },
+];
+
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const usersRef = collection(db, 'users');
-  // Query for all users except the current one
-  const q = query(usersRef, where('uid', '!=', user.uid));
-  const [usersSnapshot] = useCollection(q);
-
-  const usersList: ChatPartner[] = useMemo(() => 
-    usersSnapshot?.docs.map(doc => doc.data() as ChatPartner) || [], 
-    [usersSnapshot]
+  // Find the other user to display
+  const friendToDisplay = useMemo(() => 
+    hardcodedUsers.find(u => u.uid !== user.uid),
+    [user.uid]
   );
-
-  const filteredUsers = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return usersList;
-    }
-    
-    return usersList.filter(u => 
-      (u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }, [searchTerm, usersList]);
-
-
+  
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
     return name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
@@ -94,8 +92,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
           <Input 
             placeholder="Search friends..." 
             className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            disabled
           />
         </div>
       </div>
@@ -104,33 +101,27 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
-            {filteredUsers.length === 0 && searchTerm && (
-                <div className="text-center text-gray-500 p-4">
-                  No users found.
-                </div>
-            )}
-            {usersList.length === 0 && !searchTerm && (
-                <div className="text-center text-gray-500 p-4">
-                  No other users to chat with.
-                </div>
-            )}
-            {filteredUsers.map((friend) => (
+            {friendToDisplay ? (
                 <button
-                    key={friend.uid}
+                    key={friendToDisplay.uid}
                     type="button"
                     className="w-full text-left p-2 rounded-lg hover:bg-gray-100 flex items-center gap-3"
-                    onClick={() => onSelectChat(friend)}
+                    onClick={() => onSelectChat(friendToDisplay)}
                 >
                     <Avatar className="h-12 w-12">
-                        <AvatarImage src={friend.photoURL!} alt={friend.displayName!} />
-                        <AvatarFallback>{getInitials(friend.displayName!)}</AvatarFallback>
+                        <AvatarImage src={friendToDisplay.photoURL!} alt={friendToDisplay.displayName!} />
+                        <AvatarFallback>{getInitials(friendToDisplay.displayName!)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                         <p className="font-semibold truncate">{friend.displayName}</p>
-                        <p className="text-sm text-gray-500 truncate">{friend.email}</p>
+                         <p className="font-semibold truncate">{friendToDisplay.displayName}</p>
+                        <p className="text-sm text-gray-500 truncate">{friendToDisplay.email}</p>
                     </div>
                 </button>
-            ))}
+            ) : (
+              <div className="text-center text-gray-500 p-4">
+                No other user found to connect with. Please ensure both test users are configured.
+              </div>
+            )}
         </div>
       </ScrollArea>
     </div>
