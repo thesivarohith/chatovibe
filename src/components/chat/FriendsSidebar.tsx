@@ -1,8 +1,6 @@
 'use client';
 
 import type { User } from 'firebase/auth';
-import { collection, query, where } from 'firebase/firestore';
-import { useCollection } from 'react-firebase-hooks/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -25,35 +23,35 @@ interface FriendsSidebarProps {
   onSelectChat: (user: ChatPartner) => void;
 }
 
-const UserSkeleton = () => (
-    <div className="flex items-center gap-3 p-2">
-        <Skeleton className="h-12 w-12 rounded-full" />
-        <div className="flex-1 space-y-2">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-        </div>
-    </div>
-)
+const allUsers: ChatPartner[] = [
+    {
+        uid: 'VrDm5fX3hQNrzeoXLVwDxO6snYs1', // Assuming full UID for sivarohith2007
+        displayName: 'sivarohith 2007',
+        email: 'sivarohith2007@gmail.com',
+        photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocL-q9x_T7f5y0_wXy_gY6U_j_s8k_z-O_hJ8eP8sY=s96-c' // Generic placeholder
+    },
+    {
+        uid: 's5ZpugkT9JRPBmArEJUHAMg3VqE2', // Assuming full UID for thesivarohith
+        displayName: 'thesivarohith',
+        email: 'thesivarohith@gmail.com',
+        photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocL-q9x_T7f5y0_wXy_gY6U_j_s8k_z-O_hJ8eP8sY=s96-c' // Generic placeholder
+    }
+];
+
 
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const usersRef = collection(db, 'users');
-  // Query for all users except the current one
-  const usersQuery = query(usersRef, where('uid', '!=', user.uid));
-  const [usersSnapshot, loading] = useCollection(usersQuery);
+  const otherUsers = useMemo(() => allUsers.filter(u => u.uid !== user.uid), [user.uid]);
 
   const filteredUsers = useMemo(() => {
-    if (!usersSnapshot) return [];
-    const allUsers = usersSnapshot.docs.map(doc => doc.data() as ChatPartner);
+    if (!searchTerm.trim()) return otherUsers;
     
-    if (!searchTerm.trim()) return allUsers;
-    
-    return allUsers.filter(u => 
+    return otherUsers.filter(u => 
       (u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }, [searchTerm, usersSnapshot]);
+  }, [searchTerm, otherUsers]);
 
 
   const getInitials = (name: string | null) => {
@@ -111,16 +109,9 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
-            {loading && (
-                <div className="space-y-2">
-                    <UserSkeleton />
-                    <UserSkeleton />
-                    <UserSkeleton />
-                </div>
-            )}
-            {!loading && filteredUsers.length === 0 && (
+            {filteredUsers.length === 0 && (
                 <div className="text-center text-gray-500 p-4">
-                  {usersSnapshot && usersSnapshot.docs.length > 0 ? 'No users found.' : 'No other users to chat with.'}
+                  No users found.
                 </div>
             )}
             {filteredUsers.map((friend) => (
