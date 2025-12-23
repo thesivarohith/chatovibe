@@ -5,9 +5,14 @@ import { auth } from '@/lib/firebase';
 import Login from '@/components/auth/Login';
 import ChatRoom from '@/components/chat/ChatRoom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import FriendsSidebar from '@/components/chat/FriendsSidebar';
+import { useState } from 'react';
+import type { User } from 'firebase/auth';
 
 export default function Home() {
   const [user, loading] = useAuthState(auth);
+  const [selectedChat, setSelectedChat] = useState<User | null>(user);
 
   if (loading) {
     return (
@@ -22,7 +27,28 @@ export default function Home() {
   }
 
   if (user) {
-    return <ChatRoom user={user} />;
+    return (
+      <SidebarProvider>
+        <Sidebar>
+          <FriendsSidebar user={user} onSelectChat={setSelectedChat} />
+        </Sidebar>
+        <SidebarInset>
+          <div className="flex flex-col h-screen bg-background">
+             <header className="flex items-center p-2 md:hidden border-b">
+                <SidebarTrigger />
+                <h2 className="text-lg font-semibold ml-2">Messages</h2>
+             </header>
+            {selectedChat ? (
+              <ChatRoom user={user} chatWith={selectedChat} />
+            ) : (
+              <div className="flex flex-1 items-center justify-center">
+                <p>Select a chat to start messaging</p>
+              </div>
+            )}
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    );
   }
 
   return <Login />;

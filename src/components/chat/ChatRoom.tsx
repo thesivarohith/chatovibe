@@ -1,7 +1,7 @@
 'use client';
 import type { User } from 'firebase/auth';
 import React, { useState, useRef, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, where, or } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { db } from '@/lib/firebase';
 import Header from './Header';
@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChatRoomProps {
     user: User;
+    chatWith: User;
 }
 
 const ChatSkeleton = () => (
@@ -35,12 +36,15 @@ const ChatSkeleton = () => (
 );
 
 
-export default function ChatRoom({ user }: ChatRoomProps) {
+export default function ChatRoom({ user, chatWith }: ChatRoomProps) {
     const [inputValue, setInputValue] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
     const messagesRef = collection(db, 'messages');
+    
+    // This query is for group chat. We will adapt it for 1-on-1
     const q = query(messagesRef, orderBy('createdAt', 'asc'), limit(50));
+    
     const [messagesSnapshot, loading] = useCollection(q);
 
     const scrollToBottom = () => {
@@ -78,7 +82,7 @@ export default function ChatRoom({ user }: ChatRoomProps) {
 
     return (
         <div className="flex flex-col h-screen bg-background">
-            <Header user={user} />
+            <Header user={chatWith} />
             <ScrollArea className="flex-1">
                  <div className="p-4">
                     {loading ? (

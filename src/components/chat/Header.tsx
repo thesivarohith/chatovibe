@@ -2,7 +2,7 @@
 import type { User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, MoreVertical } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -29,13 +29,21 @@ export default function Header({ user }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white shadow-md">
-      <h1 className="text-xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Realtime Relay</h1>
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ''} />
+          <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+        </Avatar>
+        <div>
+            <h2 className="font-semibold text-lg">{user.displayName}</h2>
+            <p className="text-sm text-gray-500">@{user.email?.split('@')[0]}</p>
+        </div>
+      </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Avatar className="h-10 w-10 cursor-pointer">
-            <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ''} />
-            <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-          </Avatar>
+            <Button variant="ghost" size="icon">
+                <MoreVertical />
+            </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end">
           <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
