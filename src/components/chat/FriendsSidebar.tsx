@@ -39,6 +39,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
   const [searchTerm, setSearchTerm] = useState('');
   
   const usersRef = collection(db, 'users');
+  // Query for all users except the current one
   const usersQuery = query(usersRef, where('uid', '!=', user.uid));
   const [usersSnapshot, loading] = useCollection(usersQuery);
 
@@ -46,7 +47,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
     if (!usersSnapshot) return [];
     const allUsers = usersSnapshot.docs.map(doc => doc.data() as ChatPartner);
     
-    if (!searchTerm) return allUsers;
+    if (!searchTerm.trim()) return allUsers;
     
     return allUsers.filter(u => 
       (u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -99,7 +100,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input 
             placeholder="Search friends..." 
-            className="pl-10 bg-gray-100"
+            className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -119,7 +120,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
             )}
             {!loading && filteredUsers.length === 0 && (
                 <div className="text-center text-gray-500 p-4">
-                  {searchTerm ? 'No users found.' : 'No other users to chat with.'}
+                  {usersSnapshot && usersSnapshot.docs.length > 0 ? 'No users found.' : 'No other users to chat with.'}
                 </div>
             )}
             {filteredUsers.map((friend) => (
