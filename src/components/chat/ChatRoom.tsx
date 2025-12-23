@@ -43,8 +43,9 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
     
     const messagesRef = collection(db, 'messages');
     
-    // Create a unique chat room ID for the pair of users
+    // Create a unique chat room ID for the pair of users by sorting their UIDs
     const chatRoomId = [currentUser.uid, chatPartner.uid].sort().join('_');
+    
     const q = query(
         messagesRef,
         where('chatRoomId', '==', chatRoomId),
@@ -76,10 +77,9 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
                 text: trimmedInput,
                 sender: displayName,
                 senderId: uid,
-                receiverId: chatPartner.uid,
-                chatRoomId: chatRoomId,
                 photoURL,
                 createdAt: serverTimestamp(),
+                chatRoomId: chatRoomId, // Ensure the chatRoomId is saved with the message
             });
 
             setInputValue('');

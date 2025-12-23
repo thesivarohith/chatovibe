@@ -1,7 +1,7 @@
 'use client';
 
 import type { User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,44 +16,35 @@ import {
 import { Button } from '@/components/ui/button';
 import { useState, useMemo } from 'react';
 import type { ChatPartner } from '@/app/page';
+import { collection, query, where } from 'firebase/firestore';
+import { useCollection } from 'react-firebase-hooks/firestore';
 
 interface FriendsSidebarProps {
   user: User;
   onSelectChat: (user: ChatPartner) => void;
 }
 
-// Manually defined list of the two users for testing purposes.
-const allUsers: ChatPartner[] = [
-    {
-        uid: 'VrDm5fX3hQNrzeoXLVwDxO6snYs1', 
-        displayName: 'sivarohith 2007',
-        email: 'sivarohith2007@gmail.com',
-        photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocJ_6Zg-Y1qX_2L_yF_i_i_i_i_i_i_i_i_i=s96-c'
-    },
-    {
-        uid: 's5ZpugkT9JRPBmArEJUHAMg3VqE2', 
-        displayName: 'thesivarohith',
-        email: 'thesivarohith@gmail.com',
-        photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocL-q9x_T7f5y0_wXy_gY6U_j_s8k_z-O_hJ8eP8sY=s96-c'
-    }
-];
-
-
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Filter out the current user from the list
-  const otherUsers = useMemo(() => allUsers.filter(u => u.uid !== user.uid), [user.uid]);
+
+  // Query for all users except the current one
+  const usersRef = collection(db, 'users');
+  const usersQuery = query(usersRef, where('uid', '!=', user.uid));
+  const [usersSnapshot, loading] = useCollection(usersQuery);
+
+  const allUsers: ChatPartner[] = useMemo(() => 
+    usersSnapshot?.docs.map(doc => doc.data() as ChatPartner) || [],
+  [usersSnapshot]);
 
   // Filter the list based on the search term
   const filteredUsers = useMemo(() => {
-    if (!searchTerm.trim()) return otherUsers;
+    if (!searchTerm.trim()) return allUsers;
     
-    return otherUsers.filter(u => 
+    return allUsers.filter(u => 
       (u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }, [searchTerm, otherUsers]);
+  }, [searchTerm, allUsers]);
 
 
   const getInitials = (name: string | null) => {
@@ -111,7 +102,12 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
-            {filteredUsers.length === 0 && (
+            {loading && (
+                <div className="text-center text-gray-500 p-4">
+                  Loading users...
+                </div>
+            )}
+            {!loading && filteredUsers.length === 0 && (
                 <div className="text-center text-gray-500 p-4">
                   No users found.
                 </div>

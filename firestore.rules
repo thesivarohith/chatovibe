@@ -3,15 +3,17 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow reading the users collection for searching
+    // Allow reading the users collection for searching, but only if authenticated.
     match /users/{userId} {
       allow read: if request.auth != null;
+      // Allow users to create/update their own user document.
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Messages can only be read/written by participants of the chat room
+    // Messages can only be read/written by participants of the chat room.
+    // This rule assumes a chatRoomId is created by joining two user UIDs with an underscore.
     match /messages/{messageId} {
-       allow read, write: if request.auth != null && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId);
+       allow read, write: if request.auth != null && request.auth.uid in resource.data.chatRoomId.split('_');
     }
   }
 }

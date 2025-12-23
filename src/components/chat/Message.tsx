@@ -9,10 +9,9 @@ export interface MessageData {
   text: string;
   sender: string;
   senderId: string;
-  receiverId: string;
-  chatRoomId: string;
   photoURL?: string;
   createdAt: Timestamp | null;
+  chatRoomId: string;
 }
 
 interface MessageProps {
