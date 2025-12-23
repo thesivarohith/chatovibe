@@ -2,7 +2,7 @@ import type { User } from 'firebase/auth';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Timestamp } from 'firebase/firestore';
-import { format } from 'date-fns';
+import moment from 'moment';
 
 export interface MessageData {
   id: string;
@@ -25,7 +25,7 @@ export default function Message({ message, currentUser }: MessageProps) {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const formattedTime = message.createdAt ? format(message.createdAt.toDate(), 'p') : '';
+  const formattedTime = message.createdAt ? moment(message.createdAt.toDate()).fromNow() : '';
 
   return (
     <div className={cn('flex items-end gap-3 my-4', isSender ? 'justify-end' : 'justify-start')}>
@@ -39,11 +39,11 @@ export default function Message({ message, currentUser }: MessageProps) {
         className={cn(
           'group relative max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg shadow-sm',
           isSender
-            ? 'bg-primary text-primary-foreground rounded-br-none'
-            : 'bg-card text-card-foreground border rounded-bl-none'
+            ? 'bg-blue-400 text-white rounded-br-none'
+            : 'bg-gray-200 text-black rounded-bl-none'
         )}
       >
-        {!isSender && <p className="text-xs font-semibold text-accent mb-1">{message.sender}</p>}
+        {!isSender && <p className="text-xs font-semibold text-gray-600 mb-1">{message.sender}</p>}
         <p className="text-sm whitespace-pre-wrap">{message.text}</p>
         <span className="text-xs opacity-70 ml-2 float-right mt-1 clear-both">
           {formattedTime}

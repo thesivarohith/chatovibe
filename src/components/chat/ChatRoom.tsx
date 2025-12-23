@@ -1,7 +1,7 @@
 'use client';
 import type { User } from 'firebase/auth';
 import React, { useState, useRef, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, query, orderBy, limit, DocumentData } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { db } from '@/lib/firebase';
 import Header from './Header';
@@ -9,9 +9,9 @@ import Message, { type MessageData } from './Message';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import FlipMove from 'react-flip-move';
 
 interface ChatRoomProps {
     user: User;
@@ -78,34 +78,26 @@ export default function ChatRoom({ user }: ChatRoomProps) {
 
     return (
         <div className="flex flex-col h-screen bg-background">
-            <Header />
+            <Header user={user} />
             <ScrollArea className="flex-1">
                  <div className="p-4">
                     {loading ? (
                         <ChatSkeleton />
                     ) : (
-                        <AnimatePresence>
+                        <FlipMove>
                             {messages.map(message => (
-                                <motion.div
+                                <Message 
                                     key={message.id}
-                                    layout
-                                    initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                                    transition={{ type: "spring", stiffness: 200, damping: 25 }}
-                                >
-                                    <Message 
-                                        message={message}
-                                        currentUser={user} 
-                                    />
-                                </motion.div>
+                                    message={message}
+                                    currentUser={user} 
+                                />
                             ))}
-                        </AnimatePresence>
+                        </FlipMove>
                     )}
                     <div ref={messagesEndRef} />
                 </div>
             </ScrollArea>
-            <footer className="p-4 bg-card border-t">
+            <footer className="p-4 bg-card border-t sticky bottom-0">
                 <form onSubmit={sendMessage} className="flex gap-2">
                     <Input 
                         value={inputValue}
@@ -114,7 +106,7 @@ export default function ChatRoom({ user }: ChatRoomProps) {
                         autoComplete="off"
                         className="text-base"
                     />
-                    <Button type="submit" size="icon" aria-label="Send Message" disabled={!inputValue.trim()}>
+                    <Button type="submit" size="icon" aria-label="Send Message" disabled={!inputValue.trim()} className="disabled:cursor-not-allowed">
                         <Send />
                     </Button>
                 </form>
