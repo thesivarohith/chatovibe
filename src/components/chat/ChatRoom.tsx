@@ -43,14 +43,16 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
     
     const messagesRef = collection(db, 'messages');
     
+    // Corrected query to fetch messages between the two users
     const q = query(
         messagesRef,
-        where('participants', 'array-contains-any', [currentUser.uid, chatPartner.uid]),
+        where('participants', 'array-contains', currentUser.uid),
         orderBy('createdAt', 'asc')
     );
 
     const [messagesSnapshot, loading] = useCollection(q);
     
+    // Filter messages on the client to get the conversation with the selected partner
     const messages = messagesSnapshot?.docs
         .map(doc => ({ ...doc.data(), id: doc.id } as MessageData))
         .filter(message => 
