@@ -3,7 +3,7 @@ import type { User } from 'firebase/auth';
 import React, { useState, useRef, useEffect } from 'react';
 import { collection, addDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
-import { db } from '@/lib/firebase';
+import { useFirestore } from '@/firebase';
 import Header from './Header';
 import Message, { type MessageData } from './Message';
 import { Input } from '@/components/ui/input';
@@ -40,17 +40,18 @@ const ChatSkeleton = () => (
 export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
     const [inputValue, setInputValue] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const db = useFirestore();
     
-    const messagesRef = collection(db, 'messages');
+    const messagesRef = db ? collection(db, 'messages') : null;
     
     // Create a unique chat room ID for the pair of users by sorting their UIDs
     const chatRoomId = [currentUser.uid, chatPartner.uid].sort().join('_');
     
-    const q = query(
+    const q = messagesRef ? query(
         messagesRef,
         where('chatRoomId', '==', chatRoomId),
         orderBy('createdAt', 'asc')
-    );
+    ) : null;
 
     const [messagesSnapshot, loading] = useCollection(q);
     
@@ -67,6 +68,7 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
     
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!messagesRef) return;
         const trimmedInput = inputValue.trim();
         if (trimmedInput === '') return;
 

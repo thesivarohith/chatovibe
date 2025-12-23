@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/firebase';
 import Login from '@/components/auth/Login';
 import ChatRoom from '@/components/chat/ChatRoom';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -49,6 +49,7 @@ function ChatLayout({ user }: { user: User }) {
 
 
 export default function Home() {
+  const auth = useAuth();
   const [user, loading] = useAuthState(auth);
   
   if (loading) {

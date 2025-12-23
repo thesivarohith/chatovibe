@@ -1,5 +1,5 @@
 'use client';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { LogOut, MoreVertical } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,8 +18,10 @@ interface HeaderProps {
 }
 
 export default function Header({ user }: HeaderProps) {
+  const auth = useAuth();
+  
   const handleSignOut = () => {
-    auth.signOut();
+    auth?.signOut();
   };
   
   const getInitials = (name: string | null) => {
