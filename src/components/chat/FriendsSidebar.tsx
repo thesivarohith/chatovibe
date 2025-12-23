@@ -1,7 +1,9 @@
 'use client';
 
 import type { User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import { useCollection } from 'react-firebase-hooks/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -22,39 +24,29 @@ interface FriendsSidebarProps {
   onSelectChat: (user: ChatPartner) => void;
 }
 
-// Manually define the two users to connect them for chatting.
-const staticUsers: ChatPartner[] = [
-  {
-    uid: 'user_sivarohith_2007',
-    displayName: 'Siva Rohith',
-    photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocJ-12345ABCDE',
-    email: 'sivarohith2007@gmail.com',
-  },
-  {
-    uid: 'user_thesivarohith',
-    displayName: 'THE SIVA ROHITH',
-    photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocK-67890FGHIJ',
-    email: 'thesivarohith@gmail.com',
-  }
-];
-
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const usersRef = collection(db, 'users');
+  // Query for all users except the current one
+  const q = query(usersRef, where('uid', '!=', user.uid));
+  const [usersSnapshot] = useCollection(q);
 
-  // Filter out the current user and then filter by search term
+  const usersList: ChatPartner[] = useMemo(() => 
+    usersSnapshot?.docs.map(doc => doc.data() as ChatPartner) || [], 
+    [usersSnapshot]
+  );
+
   const filteredUsers = useMemo(() => {
-    // Exclude the currently logged-in user from the list
-    const otherUsers = staticUsers.filter(u => u.email !== user.email);
-
     if (!searchTerm.trim()) {
-      return otherUsers;
+      return usersList;
     }
     
-    return otherUsers.filter(u => 
+    return usersList.filter(u => 
       (u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }, [searchTerm, user.email]);
+  }, [searchTerm, usersList]);
 
 
   const getInitials = (name: string | null) => {
@@ -112,7 +104,12 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
-            {filteredUsers.length === 0 && (
+            {filteredUsers.length === 0 && searchTerm && (
+                <div className="text-center text-gray-500 p-4">
+                  No users found.
+                </div>
+            )}
+            {usersList.length === 0 && !searchTerm && (
                 <div className="text-center text-gray-500 p-4">
                   No other users to chat with.
                 </div>

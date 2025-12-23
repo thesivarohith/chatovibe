@@ -25,7 +25,7 @@ export default function Login() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Save user to Firestore, this ensures the user document exists.
+      // Create or update the user document in Firestore
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         displayName: user.displayName,
