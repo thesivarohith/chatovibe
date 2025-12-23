@@ -1,7 +1,7 @@
 'use client';
 import type { User } from 'firebase/auth';
 import React, { useState, useRef, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, query, orderBy, where, or } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { db } from '@/lib/firebase';
 import Header from './Header';
@@ -46,19 +46,13 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
     // Corrected query to fetch messages between the two users
     const q = query(
         messagesRef,
-        where('participants', 'array-contains', currentUser.uid),
+        where('participants', 'in', [[currentUser.uid, chatPartner.uid], [chatPartner.uid, currentUser.uid]]),
         orderBy('createdAt', 'asc')
     );
 
     const [messagesSnapshot, loading] = useCollection(q);
     
-    // Filter messages on the client to get the conversation with the selected partner
-    const messages = messagesSnapshot?.docs
-        .map(doc => ({ ...doc.data(), id: doc.id } as MessageData))
-        .filter(message => 
-            (message.senderId === currentUser.uid && message.receiverId === chatPartner.uid) ||
-            (message.senderId === chatPartner.uid && message.receiverId === currentUser.uid)
-        ) || [];
+    const messages = messagesSnapshot?.docs.map(doc => ({ ...doc.data(), id: doc.id } as MessageData)) || [];
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -82,7 +76,7 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
                 sender: displayName,
                 senderId: uid,
                 receiverId: chatPartner.uid,
-                participants: [uid, chatPartner.uid],
+                participants: [uid, chatPartner.uid].sort(),
                 photoURL,
                 createdAt: serverTimestamp(),
             });
