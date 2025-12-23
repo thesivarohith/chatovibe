@@ -1,7 +1,7 @@
 'use client';
 
 import type { User } from 'firebase/auth';
-import { db, auth } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { useState, useMemo } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import type { ChatPartner } from '@/app/page';
 
 interface FriendsSidebarProps {
@@ -23,6 +22,7 @@ interface FriendsSidebarProps {
   onSelectChat: (user: ChatPartner) => void;
 }
 
+// Manually defined list of users for testing purposes.
 const allUsers: ChatPartner[] = [
     {
         uid: 'VrDm5fX3hQNrzeoXLVwDxO6snYs1', 
@@ -36,7 +36,6 @@ const allUsers: ChatPartner[] = [
         email: 'thesivarohith@gmail.com',
         photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocL-q9x_T7f5y0_wXy_gY6U_j_s8k_z-O_hJ8eP8sY=s96-c'
     },
-    // This is the user that was causing the issue, their display name is different from the email prefix
     {
         uid: 'gHZ9n7s2b9X8fJ2kP3s5t8YxVOE2', 
         displayName: 'Siva Rohith',
@@ -49,8 +48,10 @@ const allUsers: ChatPartner[] = [
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Filter out the current user from the list
   const otherUsers = useMemo(() => allUsers.filter(u => u.uid !== user.uid), [user.uid]);
 
+  // Filter the list based on the search term
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) return otherUsers;
     
