@@ -17,10 +17,40 @@ export type ChatPartner = {
   email: string | null;
 }
 
-export default function Home() {
-  const [user, loading] = useAuthState(auth);
+function ChatLayout({ user }: { user: User }) {
   const [selectedChat, setSelectedChat] = useState<ChatPartner | null>(null);
 
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <FriendsSidebar user={user} onSelectChat={setSelectedChat} />
+      </Sidebar>
+      <SidebarInset>
+        <div className="flex flex-col h-screen bg-background">
+          <header className="flex items-center p-2 md:hidden border-b">
+              <SidebarTrigger />
+              <h2 className="text-lg font-semibold ml-2">Messages</h2>
+          </header>
+          {selectedChat ? (
+            <ChatRoom currentUser={user} chatPartner={selectedChat} />
+          ) : (
+            <div className="flex flex-1 items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold">Select a chat to start messaging</h2>
+                <p className="text-muted-foreground">You can find friends using the search bar in the sidebar.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
+
+
+export default function Home() {
+  const [user, loading] = useAuthState(auth);
+  
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -34,31 +64,7 @@ export default function Home() {
   }
 
   if (user) {
-    return (
-      <SidebarProvider>
-        <Sidebar>
-          <FriendsSidebar user={user} onSelectChat={setSelectedChat} />
-        </Sidebar>
-        <SidebarInset>
-          <div className="flex flex-col h-screen bg-background">
-             <header className="flex items-center p-2 md:hidden border-b">
-                <SidebarTrigger />
-                <h2 className="text-lg font-semibold ml-2">Messages</h2>
-             </header>
-            {selectedChat ? (
-              <ChatRoom currentUser={user} chatPartner={selectedChat} />
-            ) : (
-              <div className="flex flex-1 items-center justify-center">
-                <div className="text-center">
-                  <h2 className="text-2xl font-semibold">Select a chat to start messaging</h2>
-                  <p className="text-muted-foreground">You can find friends using the search bar in the sidebar.</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    );
+    return <ChatLayout user={user} />;
   }
 
   return <Login />;
