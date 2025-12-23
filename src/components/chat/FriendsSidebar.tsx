@@ -99,14 +99,14 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input 
             placeholder="Search friends..." 
-            className="pl-10 bg-gray-100 p-2 rounded-lg outline-none w-full"
+            className="pl-10 bg-gray-100"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
       <div className="flex items-center justify-between px-4 py-2">
-        <h2 className="text-xl font-semibold">Messages ({filteredUsers.length})</h2>
+        <h2 className="text-xl font-semibold">Messages</h2>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
@@ -119,7 +119,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
             )}
             {!loading && filteredUsers.length === 0 && (
                 <div className="text-center text-gray-500 p-4">
-                  {searchTerm ? 'No users found.' : 'No other users found.'}
+                  {searchTerm ? 'No users found.' : 'No other users to chat with.'}
                 </div>
             )}
             {filteredUsers.map((friend) => (
