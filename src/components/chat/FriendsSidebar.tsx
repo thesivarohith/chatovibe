@@ -4,15 +4,16 @@
 import type { User } from 'firebase/auth';
 import { collection, query, where } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, MoreVertical } from 'lucide-react';
+import { Search, MoreVertical, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,10 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
         friend.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+  const handleSignOut = () => {
+    auth.signOut();
+  };
+
   return (
     <div className="flex flex-col h-full bg-card border-r">
       <div className="p-4 flex items-center justify-between border-b">
@@ -76,6 +81,11 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
             <DropdownMenuContent align="end">
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign Out</span>
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
       </div>
