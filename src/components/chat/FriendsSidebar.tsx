@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { User } from 'firebase/auth';
@@ -50,8 +49,8 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
     if (!searchTerm) return allUsers;
     
     return allUsers.filter(u => 
-      u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      (u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [searchTerm, usersSnapshot]);
 
@@ -129,7 +128,6 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
                     className="w-full text-left p-2 rounded-lg hover:bg-gray-100 flex items-center gap-3"
                     onClick={() => {
                         onSelectChat(friend);
-                        console.log(friend.uid);
                     }}
                 >
                     <Avatar className="h-12 w-12">
