@@ -1,5 +1,4 @@
 'use client';
-import type { User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { LogOut, MoreVertical } from 'lucide-react';
@@ -12,9 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import type { ChatPartner } from '@/app/page';
 
 interface HeaderProps {
-    user: User;
+    user: ChatPartner;
 }
 
 export default function Header({ user }: HeaderProps) {

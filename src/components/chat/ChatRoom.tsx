@@ -1,7 +1,7 @@
 'use client';
 import type { User } from 'firebase/auth';
 import React, { useState, useRef, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, query, orderBy, limit, where, or } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, where, or, and } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { db } from '@/lib/firebase';
 import Header from './Header';
@@ -12,10 +12,11 @@ import { Send } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { ChatPartner } from '@/app/page';
 
 interface ChatRoomProps {
-    user: User;
-    chatWith: User;
+    currentUser: User;
+    chatPartner: ChatPartner;
 }
 
 const ChatSkeleton = () => (
@@ -36,14 +37,26 @@ const ChatSkeleton = () => (
 );
 
 
-export default function ChatRoom({ user, chatWith }: ChatRoomProps) {
+export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
     const [inputValue, setInputValue] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
     const messagesRef = collection(db, 'messages');
     
-    // This query is for group chat. We will adapt it for 1-on-1
-    const q = query(messagesRef, orderBy('createdAt', 'asc'), limit(50));
+    const q = query(
+        messagesRef,
+        and(
+            or(
+                where('senderId', '==', currentUser.uid),
+                where('receiverId', '==', currentUser.uid)
+            ),
+            or(
+                where('senderId', '==', chatPartner.uid),
+                where('receiverId', '==', chatPartner.uid)
+            )
+        ),
+        orderBy('createdAt', 'asc')
+    );
     
     const [messagesSnapshot, loading] = useCollection(q);
 
@@ -54,20 +67,21 @@ export default function ChatRoom({ user, chatWith }: ChatRoomProps) {
     useEffect(() => {
         const timeout = setTimeout(scrollToBottom, 100);
         return () => clearTimeout(timeout);
-    }, [messagesSnapshot]);
+    }, [messagesSnapshot, chatPartner]);
     
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         const trimmedInput = inputValue.trim();
         if (trimmedInput === '') return;
 
-        const { uid, displayName, photoURL } = user;
+        const { uid, displayName, photoURL } = currentUser;
         
         try {
             await addDoc(messagesRef, {
                 text: trimmedInput,
                 sender: displayName,
-                uid,
+                senderId: uid,
+                receiverId: chatPartner.uid,
                 photoURL,
                 createdAt: serverTimestamp(),
             });
@@ -82,7 +96,7 @@ export default function ChatRoom({ user, chatWith }: ChatRoomProps) {
 
     return (
         <div className="flex flex-col h-screen bg-background">
-            <Header user={chatWith} />
+            <Header user={chatPartner} />
             <ScrollArea className="flex-1">
                  <div className="p-4">
                     {loading ? (
@@ -107,7 +121,7 @@ export default function ChatRoom({ user, chatWith }: ChatRoomProps) {
                                 >
                                     <Message 
                                         message={message}
-                                        currentUser={user} 
+                                        currentUser={currentUser} 
                                     />
                                 </motion.div>
                             ))}

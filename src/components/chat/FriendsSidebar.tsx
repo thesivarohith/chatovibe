@@ -2,7 +2,7 @@
 'use client';
 
 import type { User } from 'firebase/auth';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { db } from '@/lib/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,22 +16,43 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { ChatPartner } from '@/app/page';
 
 interface FriendsSidebarProps {
   user: User;
-  onSelectChat: (user: User) => void;
+  onSelectChat: (user: ChatPartner) => void;
 }
 
-// Mock user data for display purposes
-const mockUsers: Partial<User>[] = [];
-
+const UserSkeleton = () => (
+    <div className="flex items-center gap-3 p-2">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+        </div>
+    </div>
+)
 
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
+  const [searchTerm, setSearchTerm] = useState('');
   
+  const usersRef = collection(db, 'users');
+  const usersQuery = query(usersRef, where('uid', '!=', user.uid));
+  const [usersSnapshot, loading] = useCollection(usersQuery);
+
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
     return name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
   };
+
+  const filteredUsers = usersSnapshot?.docs
+    .map(doc => doc.data() as ChatPartner)
+    .filter(friend => 
+        friend.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        friend.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   return (
     <div className="flex flex-col h-full bg-card border-r">
@@ -61,36 +82,42 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
       <div className="p-4 border-b">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <Input placeholder="Search friends..." className="pl-10" />
+          <Input 
+            placeholder="Search friends..." 
+            className="pl-10" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
       <div className="flex items-center justify-between px-4 py-2">
-        <h2 className="text-xl font-semibold">Messages (0)</h2>
-        <Button variant="ghost" size="icon">
-            <Search className="h-5 w-5" />
-        </Button>
+        <h2 className="text-xl font-semibold">Messages ({filteredUsers?.length ?? 0})</h2>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
-            {mockUsers.length === 0 && (
+            {loading && (
+                <div className="space-y-2">
+                    <UserSkeleton />
+                    <UserSkeleton />
+                    <UserSkeleton />
+                </div>
+            )}
+            {!loading && filteredUsers?.length === 0 && (
                 <div className="text-center text-gray-500 p-4">No friends to show.</div>
             )}
-            {mockUsers.map((friend) => (
+            {filteredUsers?.map((friend) => (
                 <button
-                    key={friend.email}
-                    className="w-full text-left p-2 rounded-lg hover:bg-accent flex items-center gap-3"
-                    onClick={() => onSelectChat(friend as User)}
+                    key={friend.uid}
+                    className="w-full text-left p-2 rounded-lg hover:bg-gray-100 flex items-center gap-3"
+                    onClick={() => onSelectChat(friend)}
                 >
                     <Avatar className="h-12 w-12">
                         <AvatarImage src={friend.photoURL!} alt={friend.displayName!} />
                         <AvatarFallback>{getInitials(friend.displayName!)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                        <div className="flex justify-between items-baseline">
-                            <p className="font-semibold">{friend.displayName}</p>
-                            <p className="text-xs text-gray-500">Feb 11th, 2025</p>
-                        </div>
-                        <p className="text-sm text-gray-500 truncate">Some last message...</p>
+                         <p className="font-semibold">{friend.displayName}</p>
+                        <p className="text-sm text-gray-500 truncate">{friend.email}</p>
                     </div>
                 </button>
             ))}

@@ -10,9 +10,16 @@ import FriendsSidebar from '@/components/chat/FriendsSidebar';
 import { useState } from 'react';
 import type { User } from 'firebase/auth';
 
+export type ChatPartner = {
+  uid: string;
+  displayName: string | null;
+  photoURL: string | null;
+  email: string | null;
+}
+
 export default function Home() {
   const [user, loading] = useAuthState(auth);
-  const [selectedChat, setSelectedChat] = useState<User | null>(user);
+  const [selectedChat, setSelectedChat] = useState<ChatPartner | null>(null);
 
   if (loading) {
     return (
@@ -39,7 +46,7 @@ export default function Home() {
                 <h2 className="text-lg font-semibold ml-2">Messages</h2>
              </header>
             {selectedChat ? (
-              <ChatRoom user={user} chatWith={selectedChat} />
+              <ChatRoom currentUser={user} chatPartner={selectedChat} />
             ) : (
               <div className="flex flex-1 items-center justify-center">
                 <p>Select a chat to start messaging</p>

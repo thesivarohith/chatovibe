@@ -8,7 +8,8 @@ export interface MessageData {
   id: string;
   text: string;
   sender: string;
-  uid: string;
+  senderId: string;
+  receiverId: string;
   photoURL?: string;
   createdAt: Timestamp | null;
 }
@@ -19,7 +20,7 @@ interface MessageProps {
 }
 
 export default function Message({ message, currentUser }: MessageProps) {
-  const isSender = message.uid === currentUser.uid;
+  const isSender = message.senderId === currentUser.uid;
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
