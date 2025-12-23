@@ -43,10 +43,11 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
     
     const messagesRef = collection(db, 'messages');
     
-    // Corrected query to fetch messages between the two users
+    // Create a unique chat room ID for the pair of users
+    const chatRoomId = [currentUser.uid, chatPartner.uid].sort().join('_');
     const q = query(
         messagesRef,
-        where('participants', 'in', [[currentUser.uid, chatPartner.uid], [chatPartner.uid, currentUser.uid]]),
+        where('chatRoomId', '==', chatRoomId),
         orderBy('createdAt', 'asc')
     );
 
@@ -76,7 +77,7 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
                 sender: displayName,
                 senderId: uid,
                 receiverId: chatPartner.uid,
-                participants: [uid, chatPartner.uid].sort(),
+                chatRoomId: chatRoomId,
                 photoURL,
                 createdAt: serverTimestamp(),
             });

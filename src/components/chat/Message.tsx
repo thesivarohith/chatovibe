@@ -10,7 +10,7 @@ export interface MessageData {
   sender: string;
   senderId: string;
   receiverId: string;
-  participants: string[];
+  chatRoomId: string;
   photoURL?: string;
   createdAt: Timestamp | null;
 }

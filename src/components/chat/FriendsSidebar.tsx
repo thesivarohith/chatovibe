@@ -43,17 +43,17 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
   const usersQuery = query(usersRef, where('uid', '!=', user.uid));
   const [usersSnapshot, loading] = useCollection(usersQuery);
 
-  const allUsers = useMemo(() => {
-    return usersSnapshot?.docs.map(doc => doc.data() as ChatPartner) || [];
-  }, [usersSnapshot]);
-
   const filteredUsers = useMemo(() => {
+    if (!usersSnapshot) return [];
+    const allUsers = usersSnapshot.docs.map(doc => doc.data() as ChatPartner);
+    
     if (!searchTerm) return allUsers;
+    
     return allUsers.filter(u => 
       u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, allUsers]);
+  }, [searchTerm, usersSnapshot]);
 
 
   const getInitials = (name: string | null) => {
@@ -100,7 +100,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input 
             placeholder="Search friends..." 
-            className="pl-10" 
+            className="pl-10 bg-gray-100 p-2 rounded-lg outline-none w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -120,14 +120,17 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
             )}
             {!loading && filteredUsers.length === 0 && (
                 <div className="text-center text-gray-500 p-4">
-                  {searchTerm ? 'No users found.' : 'Find friends using the search bar.'}
+                  {searchTerm ? 'No users found.' : 'No other users found.'}
                 </div>
             )}
             {filteredUsers.map((friend) => (
                 <button
                     key={friend.uid}
                     className="w-full text-left p-2 rounded-lg hover:bg-gray-100 flex items-center gap-3"
-                    onClick={() => onSelectChat(friend)}
+                    onClick={() => {
+                        onSelectChat(friend);
+                        console.log(friend.uid);
+                    }}
                 >
                     <Avatar className="h-12 w-12">
                         <AvatarImage src={friend.photoURL!} alt={friend.displayName!} />

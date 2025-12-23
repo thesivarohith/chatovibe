@@ -49,7 +49,10 @@ export default function Home() {
               <ChatRoom currentUser={user} chatPartner={selectedChat} />
             ) : (
               <div className="flex flex-1 items-center justify-center">
-                <p>Select a chat to start messaging</p>
+                <div className="text-center">
+                  <h2 className="text-2xl font-semibold">Select a chat to start messaging</h2>
+                  <p className="text-muted-foreground">You can find friends using the search bar in the sidebar.</p>
+                </div>
               </div>
             )}
           </div>
