@@ -18,11 +18,23 @@ import {
 import { Button } from '@/components/ui/button';
 import { useState, useMemo } from 'react';
 import type { ChatPartner } from '@/app/page';
+import { Skeleton } from '../ui/skeleton';
 
 interface FriendsSidebarProps {
   user: User;
   onSelectChat: (user: ChatPartner) => void;
 }
+
+const UserSkeleton = () => (
+    <div className="flex items-center gap-3 p-2">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-40" />
+        </div>
+    </div>
+);
+
 
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
   const [search, setSearch] = useState('');
@@ -30,7 +42,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
   // Query users collection, excluding the current user
   const usersRef = collection(db, 'users');
   const q = query(usersRef, where('uid', '!=', user.uid));
-  const [usersSnapshot] = useCollection(q);
+  const [usersSnapshot, loading] = useCollection(q);
 
   const filteredUsers = useMemo(() => {
     const users = usersSnapshot?.docs.map(doc => doc.data() as ChatPartner) || [];
@@ -98,12 +110,19 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
-            {filteredUsers.length > 0 ? (
+            {loading && (
+                <div className="space-y-2">
+                    <UserSkeleton />
+                    <UserSkeleton />
+                    <UserSkeleton />
+                </div>
+            )}
+            {!loading && filteredUsers.length > 0 ? (
               filteredUsers.map(chatPartner => (
                 <button
                     key={chatPartner.uid}
                     type="button"
-                    className="w-full text-left p-2 rounded-lg hover:bg-gray-100 flex items-center gap-3"
+                    className="w-full text-left p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors"
                     onClick={() => onSelectChat(chatPartner)}
                 >
                     <Avatar className="h-12 w-12">
@@ -112,14 +131,16 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
                     </Avatar>
                     <div className="flex-1 min-w-0">
                          <p className="font-semibold truncate">{chatPartner.displayName}</p>
-                        <p className="text-sm text-gray-500 truncate">{chatPartner.email}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{chatPartner.email}</p>
                     </div>
                 </button>
               ))
             ) : (
-              <div className="text-center text-gray-500 p-4">
-                No other users found.
-              </div>
+                !loading && (
+                    <div className="text-center text-gray-500 p-4">
+                        No other users found.
+                    </div>
+                )
             )}
         </div>
       </ScrollArea>
