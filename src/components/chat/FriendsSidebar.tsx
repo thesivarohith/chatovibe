@@ -24,28 +24,24 @@ interface FriendsSidebarProps {
   onSelectChat: (user: ChatPartner) => void;
 }
 
-// Hardcoded user data based on the provided screenshot
-const hardcodedUsers: ChatPartner[] = [
-  {
-    uid: 'VrDm5fX3hQNrzeoXLVwDxO2iXCo2', // Assuming full UID from common patterns
-    displayName: 'Siva Rohith',
-    email: 'sivarohith2007@gmail.com',
-    photoURL: `https://i.pravatar.cc/150?u=VrDm5fX3hQNrzeoXLVwDxO2iXCo2`,
-  },
-  {
-    uid: 's5ZpugkT9JRPBmArEJUhAMjuhAM2', // Assuming full UID
-    displayName: 'Thesiva Rohith',
-    email: 'thesivarohith@gmail.com',
-    photoURL: `https://i.pravatar.cc/150?u=s5ZpugkT9JRPBmArEJUhAMjuhAM2`,
-  },
-];
-
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
-  // Find the other user to display
-  const friendToDisplay = useMemo(() => 
-    hardcodedUsers.find(u => u.uid !== user.uid),
-    [user.uid]
-  );
+  const [search, setSearch] = useState('');
+  
+  // Query users collection, excluding the current user
+  const usersRef = collection(db, 'users');
+  const q = query(usersRef, where('uid', '!=', user.uid));
+  const [usersSnapshot] = useCollection(q);
+
+  const filteredUsers = useMemo(() => {
+    const users = usersSnapshot?.docs.map(doc => doc.data() as ChatPartner) || [];
+    if (!search) {
+      return users;
+    }
+    return users.filter(u => 
+      u.displayName?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [usersSnapshot, search]);
   
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
@@ -92,7 +88,8 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
           <Input 
             placeholder="Search friends..." 
             className="pl-10"
-            disabled
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -101,25 +98,27 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
-            {friendToDisplay ? (
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map(chatPartner => (
                 <button
-                    key={friendToDisplay.uid}
+                    key={chatPartner.uid}
                     type="button"
                     className="w-full text-left p-2 rounded-lg hover:bg-gray-100 flex items-center gap-3"
-                    onClick={() => onSelectChat(friendToDisplay)}
+                    onClick={() => onSelectChat(chatPartner)}
                 >
                     <Avatar className="h-12 w-12">
-                        <AvatarImage src={friendToDisplay.photoURL!} alt={friendToDisplay.displayName!} />
-                        <AvatarFallback>{getInitials(friendToDisplay.displayName!)}</AvatarFallback>
+                        <AvatarImage src={chatPartner.photoURL!} alt={chatPartner.displayName!} />
+                        <AvatarFallback>{getInitials(chatPartner.displayName!)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                         <p className="font-semibold truncate">{friendToDisplay.displayName}</p>
-                        <p className="text-sm text-gray-500 truncate">{friendToDisplay.email}</p>
+                         <p className="font-semibold truncate">{chatPartner.displayName}</p>
+                        <p className="text-sm text-gray-500 truncate">{chatPartner.email}</p>
                     </div>
                 </button>
+              ))
             ) : (
               <div className="text-center text-gray-500 p-4">
-                No other user found to connect with. Please ensure both test users are configured.
+                No other users found.
               </div>
             )}
         </div>
