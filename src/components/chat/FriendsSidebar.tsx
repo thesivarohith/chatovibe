@@ -120,6 +120,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
             {filteredUsers.map((friend) => (
                 <button
                     key={friend.uid}
+                    type="button"
                     className="w-full text-left p-2 rounded-lg hover:bg-gray-100 flex items-center gap-3"
                     onClick={() => onSelectChat(friend)}
                 >
