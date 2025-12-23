@@ -23,14 +23,7 @@ interface FriendsSidebarProps {
 }
 
 // Mock user data for display purposes
-const mockUsers: Partial<User>[] = [
-    { displayName: 'Iona Wood', photoURL: 'https://i.pravatar.cc/150?u=iona', email: 'iona@example.com' },
-    { displayName: 'Quenby Fox', photoURL: 'https://i.pravatar.cc/150?u=quenby', email: 'quenby@example.com' },
-    { displayName: 'Montana Burke', photoURL: 'https://i.pravatar.cc/150?u=montana', email: 'montana@example.com' },
-    { displayName: 'Orson Holman', photoURL: 'https://i.pravatar.cc/150?u=orson', email: 'orson@example.com' },
-    { displayName: 'TaShya Hurst', photoURL: 'https://i.pravatar.cc/150?u=tashya', email: 'tashya@example.com' },
-    { displayName: 'Eden Schroeder', photoURL: 'https://i.pravatar.cc/150?u=eden', email: 'eden@example.com' },
-];
+const mockUsers: Partial<User>[] = [];
 
 
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
@@ -72,13 +65,16 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
         </div>
       </div>
       <div className="flex items-center justify-between px-4 py-2">
-        <h2 className="text-xl font-semibold">Messages (15)</h2>
+        <h2 className="text-xl font-semibold">Messages (0)</h2>
         <Button variant="ghost" size="icon">
             <Search className="h-5 w-5" />
         </Button>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
+            {mockUsers.length === 0 && (
+                <div className="text-center text-gray-500 p-4">No friends to show.</div>
+            )}
             {mockUsers.map((friend) => (
                 <button
                     key={friend.email}
