@@ -1,7 +1,7 @@
 'use client';
 
 import type { User } from 'firebase/auth';
-import { useAuth, useFirestore } from '@/firebase';
+import { auth, db } from '@/lib/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -38,12 +38,10 @@ const UserSkeleton = () => (
 
 export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarProps) {
   const [search, setSearch] = useState('');
-  const auth = useAuth();
-  const db = useFirestore();
   
   // Query users collection, excluding the current user
-  const usersRef = db ? collection(db, 'users') : null;
-  const q = usersRef ? query(usersRef, where('uid', '!=', user.uid)) : null;
+  const usersRef = collection(db, 'users');
+  const q = query(usersRef, where('uid', '!=', user.uid));
   const [usersSnapshot, loading] = useCollection(q);
 
   const filteredUsers = useMemo(() => {
