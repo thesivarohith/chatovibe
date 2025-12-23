@@ -121,9 +121,7 @@ export default function FriendsSidebar({ user, onSelectChat }: FriendsSidebarPro
                 <button
                     key={friend.uid}
                     className="w-full text-left p-2 rounded-lg hover:bg-gray-100 flex items-center gap-3"
-                    onClick={() => {
-                        onSelectChat(friend);
-                    }}
+                    onClick={() => onSelectChat(friend)}
                 >
                     <Avatar className="h-12 w-12">
                         <AvatarImage src={friend.photoURL!} alt={friend.displayName!} />
