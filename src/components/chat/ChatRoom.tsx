@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import FlipMove from 'react-flip-move';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChatRoomProps {
     user: User;
@@ -84,15 +84,30 @@ export default function ChatRoom({ user }: ChatRoomProps) {
                     {loading ? (
                         <ChatSkeleton />
                     ) : (
-                        <FlipMove>
+                        <AnimatePresence initial={false}>
                             {messages.map(message => (
-                                <Message 
+                                <motion.div
                                     key={message.id}
-                                    message={message}
-                                    currentUser={user} 
-                                />
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    transition={{
+                                        opacity: { duration: 0.2 },
+                                        layout: {
+                                          type: "spring",
+                                          bounce: 0.4,
+                                          duration: 0.3
+                                        }
+                                    }}
+                                >
+                                    <Message 
+                                        message={message}
+                                        currentUser={user} 
+                                    />
+                                </motion.div>
                             ))}
-                        </FlipMove>
+                        </AnimatePresence>
                     )}
                     <div ref={messagesEndRef} />
                 </div>
