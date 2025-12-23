@@ -1,7 +1,7 @@
 'use client';
 import type { User } from 'firebase/auth';
 import React, { useState, useRef, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, query, orderBy, where, or, and } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, where, or } from 'firebase/firestore';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { db } from '@/lib/firebase';
 import Header from './Header';
@@ -45,20 +45,18 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
     
     const q = query(
         messagesRef,
-        and(
-            or(
-                where('senderId', '==', currentUser.uid),
-                where('receiverId', '==', currentUser.uid)
-            ),
-            or(
-                where('senderId', '==', chatPartner.uid),
-                where('receiverId', '==', chatPartner.uid)
-            )
-        ),
+        where('participants', 'array-contains-any', [currentUser.uid, chatPartner.uid]),
         orderBy('createdAt', 'asc')
     );
-    
+
     const [messagesSnapshot, loading] = useCollection(q);
+    
+    const messages = messagesSnapshot?.docs
+        .map(doc => ({ ...doc.data(), id: doc.id } as MessageData))
+        .filter(message => 
+            (message.senderId === currentUser.uid && message.receiverId === chatPartner.uid) ||
+            (message.senderId === chatPartner.uid && message.receiverId === currentUser.uid)
+        ) || [];
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -82,6 +80,7 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
                 sender: displayName,
                 senderId: uid,
                 receiverId: chatPartner.uid,
+                participants: [uid, chatPartner.uid],
                 photoURL,
                 createdAt: serverTimestamp(),
             });
@@ -91,8 +90,6 @@ export default function ChatRoom({ currentUser, chatPartner }: ChatRoomProps) {
             console.error("Error sending message: ", error);
         }
     };
-
-    const messages = messagesSnapshot?.docs.map(doc => ({ ...doc.data(), id: doc.id } as MessageData)) || [];
 
     return (
         <div className="flex flex-col h-screen bg-background">

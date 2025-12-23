@@ -10,6 +10,7 @@ export interface MessageData {
   sender: string;
   senderId: string;
   receiverId: string;
+  participants: string[];
   photoURL?: string;
   createdAt: Timestamp | null;
 }
