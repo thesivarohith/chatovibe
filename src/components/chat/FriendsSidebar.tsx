@@ -24,19 +24,19 @@ interface FriendsSidebarProps {
   onSelectChat: (user: ChatPartner) => void;
 }
 
-// Hardcoded user data for direct connection
+// Hardcoded user data based on the provided screenshot
 const hardcodedUsers: ChatPartner[] = [
   {
-    uid: 'T25m9gAivYc1Y2a9Zqg2Z0g6xQx1',
-    displayName: 'User One',
-    email: 'user.one@example.com',
-    photoURL: `https://i.pravatar.cc/150?u=T25m9gAivYc1Y2a9Zqg2Z0g6xQx1`,
+    uid: 'VrDm5fX3hQNrzeoXLVwDxO2iXCo2', // Assuming full UID from common patterns
+    displayName: 'Siva Rohith',
+    email: 'sivarohith2007@gmail.com',
+    photoURL: `https://i.pravatar.cc/150?u=VrDm5fX3hQNrzeoXLVwDxO2iXCo2`,
   },
   {
-    uid: 'R7p0o3XyZkE5sNlJk3hG8dF2jVb2',
-    displayName: 'User Two',
-    email: 'user.two@example.com',
-    photoURL: `https://i.pravatar.cc/150?u=R7p0o3XyZkE5sNlJk3hG8dF2jVb2`,
+    uid: 's5ZpugkT9JRPBmArEJUhAMjuhAM2', // Assuming full UID
+    displayName: 'Thesiva Rohith',
+    email: 'thesivarohith@gmail.com',
+    photoURL: `https://i.pravatar.cc/150?u=s5ZpugkT9JRPBmArEJUhAMjuhAM2`,
   },
 ];
 
