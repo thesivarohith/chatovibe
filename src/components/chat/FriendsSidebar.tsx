@@ -22,7 +22,7 @@ interface FriendsSidebarProps {
   onSelectChat: (user: ChatPartner) => void;
 }
 
-// Manually defined list of users for testing purposes.
+// Manually defined list of the two users for testing purposes.
 const allUsers: ChatPartner[] = [
     {
         uid: 'VrDm5fX3hQNrzeoXLVwDxO6snYs1', 
@@ -34,12 +34,6 @@ const allUsers: ChatPartner[] = [
         uid: 's5ZpugkT9JRPBmArEJUHAMg3VqE2', 
         displayName: 'thesivarohith',
         email: 'thesivarohith@gmail.com',
-        photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocL-q9x_T7f5y0_wXy_gY6U_j_s8k_z-O_hJ8eP8sY=s96-c'
-    },
-    {
-        uid: 'gHZ9n7s2b9X8fJ2kP3s5t8YxVOE2', 
-        displayName: 'Siva Rohith',
-        email: 'sivarohith.sivakumar@gmail.com',
         photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocL-q9x_T7f5y0_wXy_gY6U_j_s8k_z-O_hJ8eP8sY=s96-c'
     }
 ];
